@@ -7,15 +7,22 @@ import api from './api/main'
 export default function Home() {
   const [data, setData] = useState([])
   const [input, setInput] = useState('')
+  const [count, setCount] = useState(0)
   const [page, setPage] = useState(1)
 
   useEffect(() => {
-    api.get(`/character/?page=${page}`)
-      .then(response => setData(response.data.results))
+    api.get(`/character/?page=${page}${input ? '&name=' + input : ''}`)
+      .then(response => {
+        setData(response.data.results),
+        setCount(response.data.info.pages)
+      })
       .catch(err => console.log(err))
-  }, [page])
+  }, [page, input])
 
-  const dataFilter = input.length > 0 ? data.filter(item => item.name.includes(input)) : null;
+  const handleSearch = (e) =>{
+    setInput(e.target.value)
+    setPage(1)
+  }
 
   return (
     <div>
@@ -33,7 +40,7 @@ export default function Home() {
                 pr='4.5rem'
                 type={'text'}
                 value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => handleSearch(e)}
                 placeholder='Search Character'
               />
               {input.length > 0 ?
@@ -46,64 +53,38 @@ export default function Home() {
         </Center>
         <Center marginTop={50}>
           <Box>
-            {dataFilter ?
-              <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
-                {dataFilter.map(item =>
-                  <Box key={item.id}>
-                    <Flex bg={'#3c3e44'} borderLeft={'8px solid green'} borderRadius={10} marginBottom={5} h='auto'>
-                      <Image src={item.image} w={{ base: 150, md: 250 }} />
-                      <Box margin={5}>
-                        <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight={'700'} marginBottom={2}>{item.name}</Text>
-                        <Tag
-                          marginBottom={2}
-                          size={'sm'}
-                          borderRadius='full'
-                          variant='solid'
-                          colorScheme={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null}
-                        >{item.status}</Tag>
-                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Gender:</b> {item.gender}</Text>
-                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {item.species}</Text>
-                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
-                      </Box>
-                    </Flex>
-                  </Box>
+            <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
+              {data.map(item =>
+                <Box key={item.id}>
+                  <Flex bg={'#3c3e44'} borderLeft={'8px solid green'} borderRadius={10} marginBottom={5} h='auto'>
+                    <Image src={item.image} w={{ base: 150, md: 250 }} />
+                    <Box margin={5}>
+                      <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight={'700'} marginBottom={2}>{item.name}</Text>
+                      <Tag
+                        marginBottom={2}
+                        size={'sm'}
+                        borderRadius='full'
+                        variant='solid'
+                        colorScheme={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null}
+                      >{item.status}</Tag>
+                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Gender:</b> {item.gender}</Text>
+                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {item.species}</Text>
+                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
+                    </Box>
+                  </Flex>
+                </Box>
 
-                )}
-              </SimpleGrid>
-              :
-              <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
-                {data.map(item =>
-                  <Box key={item.id}>
-                    <Flex bg={'#3c3e44'} borderLeft={'8px solid green'} borderRadius={10} marginBottom={5} h='auto'>
-                      <Image src={item.image} w={{ base: 150, md: 250 }} />
-                      <Box margin={5}>
-                        <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight={'700'} marginBottom={2}>{item.name}</Text>
-                        <Tag
-                          marginBottom={2}
-                          size={'sm'}
-                          borderRadius='full'
-                          variant='solid'
-                          colorScheme={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null}
-                        >{item.status}</Tag>
-                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Gender:</b> {item.gender}</Text>
-                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {item.species}</Text>
-                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
-                      </Box>
-                    </Flex>
-                  </Box>
-
-                )}
-              </SimpleGrid>
-            }
+              )}
+            </SimpleGrid>
           </Box>
         </Center>
-          <Box>
-            <Text textAlign={'center'} m={5}>Page: {page}</Text>
-          </Box>
+        <Box>
+          <Text textAlign={'center'} m={5}>Page: {page}</Text>
+        </Box>
         <Center>
           <Flex gap={3} color={'black'}>
             <Button onClick={e => setPage(page - 1)} disabled={page === 1 ? true : false}><ArrowLeftIcon /></Button>
-            <Button onClick={e => setPage(page + 1)} disabled={page === 42 ? true : false}><ArrowRightIcon /></Button>
+            <Button onClick={e => setPage(page + 1)} disabled={page === count ? true : false}><ArrowRightIcon /></Button>
           </Flex>
         </Center>
       </Container>
