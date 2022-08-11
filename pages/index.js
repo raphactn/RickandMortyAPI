@@ -59,7 +59,7 @@ export default function Home() {
             <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
               {data.map(item =>
                 <Box key={item.id}>
-                  <Flex key={item.id} bg={'#3c3e44'} borderLeft={'8px solid green'} borderRadius={5} marginBottom={5} h='auto'>
+                  <Flex key={item.id} bg={'#3c3e44'} borderLeft={'8px solid'} borderColor={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null} borderRadius={5} marginBottom={5} h='auto'>
                     <Image src={item.image} w={{ base: 150, md: 250 }} />
                     <Box margin={5} key={item.id}>
                       <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight={'700'} marginBottom={2}>{item.name}</Text>
