@@ -1,6 +1,7 @@
-import { Box, Center, Image, Input, InputRightElement, Button, InputGroup, InputLeftElement, SimpleGrid, Text, Container, Flex, Tag } from '@chakra-ui/react'
+import { Box, Center, Image, Input, InputRightElement, Button, InputGroup, InputLeftElement, SimpleGrid, Text, Container, Flex, Tag, IconButton } from '@chakra-ui/react'
 import { Search2Icon, CloseIcon, ArrowLeftIcon, ArrowRightIcon } from '@chakra-ui/icons'
 import Head from 'next/head'
+import { MdFavoriteBorder, MdFavorite } from 'react-icons/md'
 import { useEffect, useState } from 'react'
 import api from './api/main'
 
@@ -8,6 +9,10 @@ export default function Home() {
   const [data, setData] = useState([])
   const [input, setInput] = useState('')
   const [count, setCount] = useState(0)
+  const [search, setSearch] = useState(false)
+  const [state, setState] = useState(false)
+  const [activeFavorit, setActiveFavorit] = useState(true)
+  const [listFavorit, setListFavorit] = useState([])
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -17,11 +22,39 @@ export default function Home() {
           setCount(response.data.info.pages)
       })
       .catch(err => console.log(err))
-  }, [page, input])
+  }, [page, input, search])
+
+  const handleJustFavorit = () => {
+    api.get(`/character/${localStorage['favorit']}`)
+      .then(response => {
+        setData(response.data)
+      })
+      .catch(err => console.log(err))
+  }
+
+  const handleActiveFavorit = () => {
+    if (activeFavorit && localStorage['favorit'] !== "") {
+      handleJustFavorit()
+      setActiveFavorit(false)
+    } else {
+      setSearch(!search)
+      setActiveFavorit(true)
+    }
+  }
 
   const handleSearch = (e) => {
     setInput(e.target.value)
     setPage(1)
+  }
+
+  const handleFavorit = (id) => {
+    if (listFavorit.includes(id)) {
+      listFavorit.splice(listFavorit.indexOf(id), 1)
+    } else {
+      listFavorit.push(id)
+    }
+    setState(!state)
+    localStorage.setItem('favorit', listFavorit)
   }
 
   return (
@@ -35,50 +68,83 @@ export default function Home() {
         <Center>
           <Box>
             <Image src={'/logo.png'} w={500} />
-            <InputGroup size='md'>
-              <Input
-                pr='4.5rem'
-                type={'text'}
-                value={input}
-                onChange={e => handleSearch(e)}
-                placeholder='Find your character'
-              />
-              <InputLeftElement>
-                <Search2Icon />
-              </InputLeftElement>
-              {input.length > 0 ?
-                <InputRightElement>
-                  <CloseIcon onClick={e => setInput('')} />
-                </InputRightElement>
-                : null}
-            </InputGroup>
+            <Center gap={2}>
+              <InputGroup size='md'>
+                <Input
+                  pr='4.5rem'
+                  type={'text'}
+                  value={input}
+                  onChange={e => handleSearch(e)}
+                  placeholder='Find your character'
+                />
+                <InputLeftElement>
+                  <Search2Icon />
+                </InputLeftElement>
+                {input.length > 0 ?
+                  <InputRightElement>
+                    <CloseIcon onClick={e => setInput('')} />
+                  </InputRightElement>
+                  : null}
+              </InputGroup>
+              <Button color={'black'} onClick={handleActiveFavorit}>Favoritos</Button>
+            </Center>
           </Box>
         </Center>
         <Center marginTop={50}>
           <Box>
-            <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
-              {data.map(item =>
-                <Box key={item.id}>
-                  <Flex key={item.id} bg={'#3c3e44'} borderLeft={'8px solid'} borderColor={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null} borderRadius={5} marginBottom={5} h='auto'>
-                    <Image src={item.image} w={{ base: 150, md: 250 }} />
-                    <Box margin={5} key={item.id}>
-                      <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight={'700'} marginBottom={2}>{item.name}</Text>
+            {data.length > 1 ?
+              <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
+                {data?.map(item =>
+                  <Box key={item.id}>
+                    <Flex key={item.id} bg={'#3c3e44'} borderLeft={'8px solid'} borderColor={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null} borderRadius={5} marginBottom={5} h='auto'>
+                      <Image src={item.image} w={{ base: 150, md: 250 }} />
+                      <Box margin={5} key={item.id}>
+                        <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight={'700'} marginBottom={2}>{item.name}</Text>
+                        <Tag
+                          marginBottom={2}
+                          size={'sm'}
+                          borderRadius='full'
+                          variant='solid'
+                          colorScheme={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null}
+                        >{item.status}</Tag>
+                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Gender:</b> {item.gender}</Text>
+                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {item.species}</Text>
+                        <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
+                      </Box>
+                      <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(item.id)}>
+                        {listFavorit.includes(item.id) ?
+                          <MdFavorite fontSize={'30px'} />
+                          : <MdFavoriteBorder fontSize={'30px'} />}
+                      </Box>
+                    </Flex>
+                  </Box>
+                )}
+              </SimpleGrid>
+              : <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
+                <Box key={data.id}>
+                  <Flex key={data.id} bg={'#3c3e44'} borderLeft={'8px solid'} borderColor={data.status === 'Alive' ? 'green' : data.status === 'Dead' ? 'red' : null} borderRadius={5} marginBottom={5} h='auto'>
+                    <Image src={data.image} w={{ base: 150, md: 250 }} />
+                    <Box margin={5} key={data.id}>
+                      <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight={'700'} marginBottom={2}>{data.name}</Text>
                       <Tag
                         marginBottom={2}
                         size={'sm'}
                         borderRadius='full'
                         variant='solid'
-                        colorScheme={item.status === 'Alive' ? 'green' : item.status === 'Dead' ? 'red' : null}
-                      >{item.status}</Tag>
-                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Gender:</b> {item.gender}</Text>
-                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {item.species}</Text>
-                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
+                        colorScheme={data.status === 'Alive' ? 'green' : data.status === 'Dead' ? 'red' : null}
+                      >{data.status}</Tag>
+                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Gender:</b> {data.gender}</Text>
+                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {data.species}</Text>
+                      <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {data.location?.name}</Text>
+                    </Box>
+                    <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(data.id)}>
+                      {listFavorit.includes(data.id) ?
+                        <MdFavorite fontSize={'30px'} />
+                        : <MdFavoriteBorder fontSize={'30px'} />}
                     </Box>
                   </Flex>
                 </Box>
-
-              )}
-            </SimpleGrid>
+              </SimpleGrid>}
           </Box>
         </Center>
         <Box>
