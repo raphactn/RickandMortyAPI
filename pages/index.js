@@ -6,14 +6,15 @@ import { useEffect, useState } from 'react'
 import api from './api/main'
 
 export default function Home() {
-  const [data, setData] = useState([])
-  const [input, setInput] = useState('')
-  const [count, setCount] = useState(0)
-  const [search, setSearch] = useState(false)
+  const [data, setData] = useState([]);
+  const [list, setList] = useState([])
+  const [input, setInput] = useState('');
+  const [count, setCount] = useState(0);
+  const [searchAll, setSearchAll] = useState(false);
   const [state, setState] = useState(false)
-  const [activeFavorit, setActiveFavorit] = useState(true)
-  const [listFavorit, setListFavorit] = useState([])
-  const [page, setPage] = useState(1)
+  const [activeFavorit, setActiveFavorit] = useState(true);
+  const [page, setPage] = useState(1);
+  const array = [];
 
   useEffect(() => {
     api.get(`/character/?page=${page}${input ? '&name=' + input : ''}`)
@@ -22,40 +23,48 @@ export default function Home() {
           setCount(response.data.info.pages)
       })
       .catch(err => console.log(err))
-  }, [page, input, search])
+  }, [page, input, searchAll]);
+
+  useEffect(() => {
+    setList(localStorage.getItem('session'))
+  }, [array, state])
 
   const handleJustFavorit = () => {
-    api.get(`/character/${localStorage['favorit']}`)
+    api.get(`/character/${localStorage['session']}`)
       .then(response => {
         setData(response.data)
       })
       .catch(err => console.log(err))
-  }
+  };
 
   const handleActiveFavorit = () => {
-    if (activeFavorit && localStorage['favorit'] !== "") {
+    if (activeFavorit && localStorage['session']) {
       handleJustFavorit()
       setActiveFavorit(false)
     } else {
-      setSearch(!search)
+      setSearchAll(!searchAll)
       setActiveFavorit(true)
     }
-  }
+  };
 
   const handleSearch = (e) => {
     setInput(e.target.value)
     setPage(1)
-  }
+  };
 
   const handleFavorit = (id) => {
-    if (listFavorit.includes(id)) {
-      listFavorit.splice(listFavorit.indexOf(id), 1)
-    } else {
-      listFavorit.push(id)
-    }
+    array = JSON.parse(localStorage.getItem('session')) || [];
     setState(!state)
-    localStorage.setItem('favorit', listFavorit)
-  }
+    if (array.includes(id)) {
+      array.splice(array.indexOf(id), 1)
+      localStorage.setItem('session', JSON.stringify(array));
+    } else {
+      array.push(id)
+      localStorage.setItem('session', JSON.stringify(array));
+    }
+
+  };
+
 
   return (
     <div>
@@ -92,7 +101,7 @@ export default function Home() {
         </Center>
         <Center marginTop={50}>
           <Box>
-            {data.length > 1 ?
+            {data.length > 0 ?
               <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={{ base: 1, md: 10 }}>
                 {data?.map(item =>
                   <Box key={item.id}>
@@ -112,9 +121,10 @@ export default function Home() {
                         <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
                       </Box>
                       <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(item.id)}>
-                        {listFavorit.includes(item.id) ?
-                          <MdFavorite fontSize={'30px'} />
-                          : <MdFavoriteBorder fontSize={'30px'} />}
+                        {list.includes(item.id) ?
+                          <MdFavorite fontSize={'30px'} /> :
+                          <MdFavoriteBorder fontSize={'30px'} />
+                        }
                       </Box>
                     </Flex>
                   </Box>
@@ -138,9 +148,10 @@ export default function Home() {
                       <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {data.location?.name}</Text>
                     </Box>
                     <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(data.id)}>
-                      {listFavorit.includes(data.id) ?
-                        <MdFavorite fontSize={'30px'} />
-                        : <MdFavoriteBorder fontSize={'30px'} />}
+                      {list.includes(data.id) ?
+                        <MdFavorite fontSize={'30px'} /> :
+                        <MdFavoriteBorder fontSize={'30px'} />
+                      }
                     </Box>
                   </Flex>
                 </Box>
