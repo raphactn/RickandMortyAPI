@@ -121,7 +121,7 @@ export default function Home() {
                         <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
                       </Box>
                       <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(item.id)}>
-                        {list.includes(item.id) ?
+                        {list?.includes(item.id) ?
                           <MdFavorite fontSize={'30px'} /> :
                           <MdFavoriteBorder fontSize={'30px'} />
                         }
@@ -148,7 +148,7 @@ export default function Home() {
                       <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {data.location?.name}</Text>
                     </Box>
                     <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(data.id)}>
-                      {list.includes(data.id) ?
+                      {list?.includes(data.id) ?
                         <MdFavorite fontSize={'30px'} /> :
                         <MdFavoriteBorder fontSize={'30px'} />
                       }
