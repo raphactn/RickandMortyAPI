@@ -14,7 +14,8 @@ export default function Home() {
   const [state, setState] = useState(false)
   const [activeFavorit, setActiveFavorit] = useState(true);
   const [page, setPage] = useState(1);
-  const array = [];
+  const arrayId = [];
+  const arrayName = [];
 
   useEffect(() => {
     api.get(`/character/?page=${page}${input ? '&name=' + input : ''}`)
@@ -26,8 +27,8 @@ export default function Home() {
   }, [page, input, searchAll]);
 
   useEffect(() => {
-    setList(localStorage.getItem('session'))
-  }, [array, state])
+    setList(localStorage.getItem('sessionName'))
+  }, [arrayName, state])
 
   const handleJustFavorit = () => {
     api.get(`/character/${localStorage['session']}`)
@@ -52,19 +53,23 @@ export default function Home() {
     setPage(1)
   };
 
-  const handleFavorit = (id) => {
-    array = JSON.parse(localStorage.getItem('session')) || [];
+  const handleFavorit = (id, name) => {
+    arrayId = JSON.parse(localStorage.getItem('session')) || [];
+    arrayName = JSON.parse(localStorage.getItem('sessionName')) || [];
     setState(!state)
-    if (array.includes(id)) {
-      array.splice(array.indexOf(id), 1)
-      localStorage.setItem('session', JSON.stringify(array));
+    if (arrayId.includes(id)) {
+      arrayId.splice(arrayId.indexOf(id), 1)
+      arrayName.splice(arrayName.indexOf(name), 1)
+      localStorage.setItem('session', JSON.stringify(arrayId));
+      localStorage.setItem('sessionName', JSON.stringify(arrayName));
     } else {
-      array.push(id)
-      localStorage.setItem('session', JSON.stringify(array));
+      arrayId.push(id)
+      arrayName.push(name)
+      localStorage.setItem('session', JSON.stringify(arrayId));
+      localStorage.setItem('sessionName', JSON.stringify(arrayName));
     }
 
   };
-
 
   return (
     <div>
@@ -120,8 +125,8 @@ export default function Home() {
                         <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {item.species}</Text>
                         <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {item.location.name}</Text>
                       </Box>
-                      <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(item.id)}>
-                        {list?.includes(item.id) ?
+                      <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(item.id, item.name)}>
+                        {list?.includes(item.name) ?
                           <MdFavorite fontSize={'30px'} /> :
                           <MdFavoriteBorder fontSize={'30px'} />
                         }
@@ -147,8 +152,8 @@ export default function Home() {
                       <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Species:</b> {data.species}</Text>
                       <Text fontSize={{ base: '1xl', md: '2xl' }} ><b>Location:</b> {data.location?.name}</Text>
                     </Box>
-                    <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(data.id)}>
-                      {list?.includes(data.id) ?
+                    <Box marginLeft={'auto'} marginRight={5} marginTop={5} onClick={e => handleFavorit(data.id, data.name)}>
+                      {list?.includes(data.name) ?
                         <MdFavorite fontSize={'30px'} /> :
                         <MdFavoriteBorder fontSize={'30px'} />
                       }
